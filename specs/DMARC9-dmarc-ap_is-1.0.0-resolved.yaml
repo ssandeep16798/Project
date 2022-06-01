@@ -1,0 +1,492 @@
+---
+swagger: "2.0"
+info:
+  description: Convert and Visualaise your DMARC reports into human redable data.
+  version: 1.0.0
+  title: DMARC APIs
+host: virtserver.swaggerhub.com
+basePath: /DMARC4/DmarcAPIs/1.0.0
+tags:
+- name: Dmarc
+  description: Add or Retrieve Dmarc Data
+schemes:
+- https
+- http
+paths:
+  /parseXML:
+    post:
+      tags:
+      - Dmarc
+      summary: Parses the XML file into a go struct and stores in a DB.
+      description: ""
+      consumes:
+      - multipart/form-data
+      produces:
+      - application/json
+      parameters:
+      - name: XML File
+        in: formData
+        description: Dmarc xml file which needs to be parsed and stored
+        required: true
+        type: file
+      responses:
+        "200":
+          description: Takes the XML file, converts it and stores in a Database.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/successresponse'
+        "404":
+          description: Page Not Found
+  /getdatabyreportid:
+    get:
+      tags:
+      - Dmarc
+      summary: Finds Dmarc Data by Report ID
+      description: Fetch Dmarc data by using report id
+      operationId: findDmarcDataById
+      produces:
+      - application/json
+      parameters:
+      - name: report_id
+        in: query
+        description: report id that needs to be considered for filter
+        required: true
+        type: string
+        collectionFormat: multi
+      responses:
+        "200":
+          description: Successful Operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Response'
+        "400":
+          description: Invalid URL supplied.
+        "404":
+          description: Page Not Found.
+  /getdatabydomain:
+    get:
+      tags:
+      - Dmarc
+      summary: Finds Dmarc Data using Domain Name
+      description: Fetch Dmarc data by using Domain Name
+      operationId: findDmarcDataByDomainName
+      produces:
+      - application/json
+      parameters:
+      - name: domain_name
+        in: query
+        description: domain name that needs to be considered for filter
+        required: true
+        type: string
+        collectionFormat: multi
+      - name: From Date
+        in: query
+        description: start date from which user wants to view data
+        required: true
+        type: string
+        collectionFormat: multi
+      - name: To Date
+        in: query
+        description: end data the user wants.
+        required: true
+        type: string
+      responses:
+        "200":
+          description: Successful Operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Response'
+        "400":
+          description: Invalid URL supplied.
+        "404":
+          description: Page Not Found.
+  /login/:
+    post:
+      tags:
+      - user
+      summary: User login
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: payload
+        description: object containing email and password for user login
+        required: true
+        schema:
+          $ref: '#/definitions/payload'
+      responses:
+        "200":
+          description: Successful Operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LoginResponseWithData'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorize
+        "404":
+          description: Page Not Found.
+  /registeruser/:
+    post:
+      tags:
+      - user
+      summary: New User Registration
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: payload
+        description: object conataining new user details.
+        required: true
+        schema:
+          $ref: '#/definitions/payload_1'
+      responses:
+        "200":
+          description: Successful Operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LoginResponseWithData'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorize
+        "404":
+          description: Page Not Found.
+  /verifyemail/:
+    post:
+      tags:
+      - user
+      summary: Verifies user email for password change.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: payload
+        description: Checks for email in the database if it is valid asks user to reset password.
+        required: true
+        schema:
+          $ref: '#/definitions/payload_2'
+      responses:
+        "200":
+          description: Success.
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LoginResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorize
+        "404":
+          description: Page Not Found.
+  /resetpassword/:
+    put:
+      tags:
+      - user
+      summary: asks user to change password.
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: payload
+        description: If email is verified in the DB, it asks the user to enter a new password and it stores the same.
+        required: true
+        schema:
+          $ref: '#/definitions/payload_3'
+      responses:
+        "200":
+          description: Successful Operation
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/LoginResponse'
+        "401":
+          description: Unauthorize
+        "404":
+          description: Page Not Found.
+definitions:
+  successresponse:
+    type: object
+    properties:
+      status:
+        type: boolean
+      Msg:
+        type: string
+      Data:
+        type: object
+        properties: {}
+      ReportId:
+        type: string
+  Feedback:
+    type: object
+    properties:
+      XMLName:
+        type: object
+        properties: {}
+      Text:
+        type: string
+      ReportMetaData:
+        $ref: '#/definitions/ReportMetaData'
+      PolicyPublished:
+        $ref: '#/definitions/PolicyPublished'
+      Record:
+        $ref: '#/definitions/Record'
+  ReportMetaData:
+    type: object
+    properties:
+      Text:
+        type: string
+      OrgName:
+        type: string
+      Email:
+        type: string
+      ExtraContactInfo:
+        type: string
+      ReportID:
+        type: string
+      DateRange:
+        $ref: '#/definitions/DateRange'
+  PolicyPublished:
+    type: object
+    properties:
+      Text:
+        type: string
+      Domain:
+        type: string
+      Akdim:
+        type: string
+      Aspf:
+        type: string
+      P:
+        type: string
+      Sp:
+        type: string
+      Pct:
+        type: string
+  Record:
+    type: object
+    properties:
+      Text:
+        type: string
+      Row:
+        $ref: '#/definitions/Row'
+      Identifiers:
+        $ref: '#/definitions/Identifiers'
+      AuthResults:
+        $ref: '#/definitions/AuthResults'
+  DateRange:
+    type: object
+    properties:
+      Text:
+        type: string
+      Begin:
+        type: string
+      End:
+        type: string
+  Row:
+    type: object
+    properties:
+      Text:
+        type: string
+      SourceIp:
+        type: string
+      Count:
+        type: string
+      PolicyEvaluated:
+        $ref: '#/definitions/PolicyEvaluated'
+  PolicyEvaluated:
+    type: object
+    properties:
+      Text:
+        type: string
+      Disposotion:
+        type: string
+      Dkim:
+        type: string
+      Spf:
+        type: string
+  Identifiers:
+    type: object
+    properties:
+      Text:
+        type: string
+      HeaderFrom:
+        type: string
+  AuthResults:
+    type: object
+    properties:
+      Text:
+        type: string
+      Dkim:
+        $ref: '#/definitions/Dkim'
+      Spf:
+        $ref: '#/definitions/Spf'
+  Dkim:
+    type: object
+    properties:
+      Text:
+        type: string
+      Domain:
+        type: string
+      Result:
+        type: string
+      Selector:
+        type: string
+  Spf:
+    type: object
+    properties:
+      Text:
+        type: string
+      Domain:
+        type: string
+      Result:
+        type: string
+  Data:
+    type: object
+    properties:
+      Id:
+        type: integer
+      Dmarc_json:
+        $ref: '#/definitions/Feedback'
+  Response:
+    type: object
+    properties:
+      Status:
+        type: boolean
+      Msg:
+        type: string
+      Data:
+        $ref: '#/definitions/Data'
+  Loginrequest:
+    type: object
+    properties:
+      Username:
+        type: string
+      Password:
+        type: string
+  UserRegistrationRequest:
+    type: object
+    properties:
+      Id:
+        type: integer
+        format: int64
+      Firstname:
+        type: string
+      Lastname:
+        type: string
+      Email:
+        type: string
+      Username:
+        type: string
+      Password:
+        type: string
+      Phonenumber:
+        type: string
+      Gender:
+        type: string
+      Usertype:
+        type: integer
+  UserResponse:
+    type: object
+    properties:
+      Id:
+        type: integer
+      firstname:
+        type: string
+      lastname:
+        type: string
+      email:
+        type: string
+  LoginResponse:
+    type: object
+    properties:
+      Status:
+        type: boolean
+      Msg:
+        type: string
+  LoginResponseWithData:
+    type: object
+    properties:
+      Status:
+        type: boolean
+      Msg:
+        type: string
+      Data:
+        $ref: '#/definitions/UserRegistrationRequest'
+  payload:
+    type: object
+    required:
+    - password
+    - username
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+  payload_1:
+    type: object
+    required:
+    - emailid
+    - firstname
+    - gender
+    - id
+    - lastname
+    - password
+    - phonenumber
+    - username
+    - usertype
+    properties:
+      id:
+        type: integer
+      firstname:
+        type: string
+      lastname:
+        type: string
+      username:
+        type: string
+      emailid:
+        type: string
+      password:
+        type: string
+      phonenumber:
+        type: string
+      gender:
+        type: string
+      usertype:
+        type: string
+  payload_2:
+    type: object
+    required:
+    - email
+    properties:
+      email:
+        type: string
+  payload_3:
+    type: object
+    required:
+    - email
+    - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
